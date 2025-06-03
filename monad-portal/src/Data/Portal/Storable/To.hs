@@ -2,6 +2,7 @@
 module Data.Portal.Storable.To where
 
 import Control.Exception (throw)
+import Data.Int (Int64)
 import Data.Typeable (Typeable)
 import Data.Proxy (Proxy(Proxy))
 import Data.Text (Text, pack)
@@ -15,9 +16,9 @@ import Data.Portal.Table.Types qualified as Table
 class ToSValue a where
   toSValue :: a -> SValue
 
-instance ToSValue Bool where toSValue = SValuePrim . Table.toPrim
-instance ToSValue Int  where toSValue = SValuePrim . Table.toPrim
-instance ToSValue Text where toSValue = SValuePrim . Table.toPrim
+instance ToSValue Bool  where toSValue = SValuePrim . Table.toPrim
+instance ToSValue Int64 where toSValue = SValuePrim . Table.toPrim
+instance ToSValue Text  where toSValue = SValuePrim . Table.toPrim
 
 instance ToSValue a => ToSValue (Maybe a) where
   toSValue Nothing = SValuePrim Table.PrimNull
@@ -26,7 +27,7 @@ instance ToSValue a => ToSValue (Maybe a) where
 -- | A list of storable primitives is stored as 'Table.PrimText'.
 instance Table.ToPrim a => ToSValue [a] where
   toSValue t = SValuePrim $ Table.PrimNotNull $
-    Table.PrimText $ pack $ show $ (Table.primShow . Table.toPrim) <$> t
+    Table.PrimText $ pack $ show $ Table.toPrim <$> t
 
 instance {-# OVERLAPPABLE #-} ToSDataType a k => ToSValue a where
   toSValue = SValueDataType . toSDataType

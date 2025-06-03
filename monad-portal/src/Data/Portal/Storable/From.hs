@@ -33,7 +33,7 @@ instance Table.FromPrim a => FromSValue [a] where
     let strList :: [String]
         strList = read $ unpack x
         primList :: [Table.Prim]
-        primList = fmap Table.primRead strList
+        primList = fmap read strList
     in fmap (Table.fromPrim @a) primList
   fromSValue s = throw $ E.DeserializeException $
     -- TODO: improve message with TypeApplications.

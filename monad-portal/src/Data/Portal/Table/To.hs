@@ -83,7 +83,7 @@ sFieldToCol :: SField -> ((Table.ColumnKey, Table.Prim), Table.Rows)
 sFieldToCol (colKey, SValuePrim prim) = ((colKey, prim), Map.empty)
 sFieldToCol (colKey, SValueDataType (SDataType (ref@(tk, rk), fields))) =
   let (row, nestedRows) = sFieldsToRow fields
-  in  ( (colKey, Table.PrimNotNull $ Table.PrimRef ref)
+  in  ( (colKey, Table.PrimRef ref)
       , unionRows [Map.singleton tk $ Map.singleton rk row, nestedRows]
       )
 
