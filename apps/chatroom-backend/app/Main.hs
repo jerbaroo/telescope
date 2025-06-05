@@ -30,7 +30,7 @@ main = do
 
 -- | Additional server with only one endpoint, for demonstrative purposes.
 additionalServer :: Servant.Server AdditionalAPI
-additionalServer = pure "This is data returned by the additional server"
+additionalServer = pure ""
 
 type AdditionalAPI = "additional" :> Get '[JSON] Text
 type API = AdditionalAPI :<|> Telescope.API

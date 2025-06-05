@@ -8,51 +8,79 @@
 
 </div>
 
+*Status: Working prototype / demo. But no longer in development.*
+
+Focus moved to a non-Reflex specific variant at
+[database-generic](https://github.com/jerbaroo/database-generic).
+
 ## Introduction
-*Minimum viable product. Not production ready.*
 
-Telescope is a Haskell framework for building reactive applications. Apps built
-with Telescope react to changes in your database, so they are always up-to-date.
-The Telescope framework abstracts away some of the common tasks when developing
-an application, **allowing you to focus on your business logic** and **reducing
-the time you need to build your reactive app!**
+![Example GIF](https://github.com/jerbaroo/telescope/blob/master/example.gif?raw=true)
 
-An application built with Telescope is..
-- **Reactive:** don't worry about keeping client-side and server-side data in
-  sync, your frontend can automatically react to changes in your database and
-  your database can be updated seamlessly by your frontend!
-- **Robust:** writing the strongly-typed language Haskell across the stack
-  prevents server/client protocol mismatches and other run-time errors, allowing
-  you to move fast and not break things.
-- **Minimal:** Telescope can setup a database and server for you and also manage
-  communication between client and server, so you can focus on the parts of your
-  application that really matter.
+A Haskell library for Reflex apps that react to changes to data in the DB.
 
 What are Telescope's limitations?
 - Telescope does not provide a full-featured database query language.
 - Telescope only supports a limited subset of Haskell data types.
+- In a very early prototype stage, much is missing/untested!
 
 Telescope is particularly well-suited for applications where events are pushed
 by the server e.g. notifications and dashboards. Telescope also handles forms
 and input-validation very well. On the flip-side, applications with heavy
 client-side computation such as animations are not well-suited for Telescope.
 
-In short the way Telescope works: Telescope derives a schema for your data types
-via `Generics`. Telescope exports functions F to manipulate data types in your
-database. Telescope exports a server which acts as a proxy to the database for
-any web clients, allowing web clients to execute the functions F as if they were
-server-side. The `Telescope` typeclass determines how to communicate with a
-database, Telescope is not specific to any one database (e.g. MongoDB) or
-frontend library (e.g. Reflex-DOM). "Reactive" variants of the functions F are
-provided, where function parameters and return values are streams of data (e.g.
-`Event Int`) as opposed to single values (e.g. `Int`).
+## How it works!
+- Write a `PrimaryKey` instance for your datatype to allow the `Entity` instance
+  to be derived for your datatype via `Generics`.
+- Telescope typeclass provides functions that operate on datatypes which are
+  instances of `Entity`.
+-  `Telescope` typeclass determines how to communicate with a database, you need
+  to tell Telescope how to communicate with your DB (read/write these generic
+  data types). Simple instance for demo purposes is included.
+- Telescope exports a server which acts as a proxy to the database for any web
+  clients, allowing web clients to execute the same Telescope library functions as
+  if they were server-side!
+- "Reactive" variants of the Telescope function to read/write data are provided,
+  where function parameters and return values are streams of data (e.g. `Event
+  Int`) as opposed to single values (e.g. `Int`).
 
-## Getting Started
-To see what building a reactive application with Telescope looks like, we will
-build a simple, yet functional, public chat room. Currently Telescope only has
-support for [Reflex-DOM](https://reflex-frp.org/) as a frontend, though support
-for [reflex-vty](https://hackage.haskell.org/package/reflex-vty) is planned.
+## Try it out!
+- Have [Nix](https://nixos.org/download.html) installed.
+- Configure use of the Reflex-FRP cache, follow step 2
+[here](https://github.com/obsidiansystems/obelisk#installing-obelisk).
 
+``` bash
+git clone --recurse-submodules https://github.com/jerbaroo/telescope
+```
+
+Commands for running the "chatroom" app in development mode:
+
+``` bash
+./scripts/run/dev.sh chatroom-backend
+./scripts/run/dev.sh chatroom-frontend
+# Then open localhost:3003 in a CHROMIUM browser.
+./scripts/repl.sh    chatroom-backend
+```
+
+Commands for running the "chatroom" app in production mode:
+
+``` bash 
+./scripts/build/prod.sh chatroom-frontend
+./scripts/build/prod.sh chatroom-backend
+./scripts/run/prod.sh   chatroom-backend
+# Then open localhost:3002 in a CHROMIUM browser.
+```
+
+Commands for hacking on the Telescope framework:
+
+``` bash
+./scripts/check.sh telescope
+./scripts/test/suite.sh
+./scripts/test/full.sh
+./scripts/hoogle.sh 5000
+```
+
+## Telescope in 4 Steps
 **1.** Define the data types used in your application.
 
 ``` haskell
@@ -73,7 +101,7 @@ instance PrimaryKey Message Int where
 Server.run port id
 ```
 
-**3.** Write your frontend with [Reflex-DOM](https://reflex-frp.org/)!
+**3.** Write your frontend with Reflex-DOM.
 
 ``` haskell
 main = mainWidget $ do
@@ -101,14 +129,19 @@ main = mainWidget $ do
 ```
 
 Finally build and run the application. You can now open the app in two browser
-tabs, interact with the app in one tab and watch the other app react!
+tabs, **interact with the app in one tab and watch the other app react**!
 
-A full tutorial is available [here](https://telescope-hs.netlify.app/#Tutorial).
-In the tutorial we will develop a more full-featured version of this chat room
-application that utilizes some additional features of the Telescope framework.
+## Generic Representation
 
-## Contributing
-Feedback, questions and contributions are all very welcome! The instructions
-[here](https://github.com/jerbaroo/telescope/blob/master/docs/DEVELOPMENT.md)
-should contain all the commands you need to get started hacking on this project.
-If you want to open an issue you can do that [here](https://github.com/jerbaroo/telescope/issues/new).
+``` haskell
+-- Example of a datatype to be stored.
+data Person { name :: Text, age  :: Int } deriving Generic
+
+instance PrimaryKey Person where
+ primaryKey = name
+  
+-- Diagram showing conversion to/from storable representation.
+Person "john" 70     <--->     "Person"
+                               | ID     | "name" | "age" |
+                               | "john" | "john" | 70    |
+```

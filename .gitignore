@@ -9,3 +9,4 @@ result*
 # Directories
 /build/
 dist-newstyle/
+.direnv/
